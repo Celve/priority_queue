@@ -27,20 +27,19 @@ class priority_queue {
             Clear();
         };
 
-        Node(const Node &other) {
+        Node(const Node &other):value(other.value) {
             child[0] = child[1] = nullptr;
             dis = other.dis;
-            value = other.value;
         }
 
-        Node (const T &other_value) {
+        Node (const T &other_value):value(other_value) {
             Clear();
-            value = other_value;
         }
     };
 
     Node *root;
     size_t n;
+    Compare comp;
 
     void Swap(Node *&x, Node *&y) {
         Node *temp = x;
@@ -48,10 +47,10 @@ class priority_queue {
         y = temp;
     }
 
-    void Construct(Node *&x, Node *y) {
+    void Construct(Node *&x, const Node *y) {
         if (!y)
             return ;
-        x = new Node(y);
+        x = new Node(*y);
         Construct(x->child[0], y->child[0]);
         Construct(x->child[1], y->child[1]);
     }
@@ -71,7 +70,7 @@ class priority_queue {
                 x = y;
             return ;
         }
-        if (y->value < x->value)
+        if (comp(x->value, y->value))
             Swap(x, y);
         Merge(x->child[1], y);
         if (!x->child[0]) {
@@ -79,7 +78,6 @@ class priority_queue {
             x->dis = 1;
             return ;
         }
-        int value1 = (x->child[0] != nullptr), value2 = (x->child[1] != nullptr);
         if (x->child[1]->dis > x->child[0]->dis)
             Swap(x->child[0], x->child[1]);
         x->dis = x->child[1]->dis + 1;
@@ -89,6 +87,7 @@ public:
 	 * TODO constructors
 	 */
 	priority_queue() {
+        n = 0;
         root = nullptr;
     }
 	priority_queue(const priority_queue &other) {
@@ -110,6 +109,7 @@ public:
         n = other.n;
         Deconstruct(root);
         Construct(root, other.root);
+        return *this;
     }
 	/**
 	 * get the top of the queue.
@@ -163,7 +163,9 @@ public:
 	 */
 	void merge(priority_queue &other) {
         Merge(root, other.root);
-        Deconstruct(other.root);
+        n += other.n;
+        other.root = nullptr;
+        other.n = 0;
 	}
 };
 
